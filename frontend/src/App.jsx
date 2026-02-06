@@ -288,13 +288,13 @@ function App() {
         </div>
 
         {/* Main Metrics Rings */}
-        <div className="sticky top-0 z-50 bg-whoop-gradient/95 backdrop-blur-md py-4 -mx-4 px-8 flex justify-center items-center gap-8 mb-10 shadow-lg border-b border-white/5">
+        <div className="sticky top-0 z-50 bg-whoop-gradient/95 backdrop-blur-md py-4 -mx-4 px-4 sm:px-8 flex justify-center items-center gap-4 sm:gap-8 mb-10 shadow-lg border-b border-white/5 transition-all duration-300">
           <CircularMetric 
             value={metrics.sleep_performance} 
             label="Sleep" 
             color="#66CCFF" 
             suffix="%" 
-            size="w-44 h-44"
+            size="w-32 h-32 sm:w-44 sm:h-44"
             onClick={() => openModal('Sleep', EDUCATION_CONTENT['Sleep'])}
           />
           <CircularMetric 
@@ -302,7 +302,7 @@ function App() {
             label="Recovery" 
             color={metrics.recovery_score >= 66 ? "#00E266" : metrics.recovery_score >= 33 ? "#FFDE59" : "#FF5C5C"}
             suffix="%" 
-            size="w-44 h-44"
+            size="w-32 h-32 sm:w-44 sm:h-44"
             onClick={() => openModal('Recovery', EDUCATION_CONTENT['Recovery'])}
           />
         </div>
@@ -310,7 +310,7 @@ function App() {
         {/* Daily Health Insights (2x2 Grid) */}
         <div className="px-4 mb-8">
             <h3 className="text-whoop-textDim text-xs uppercase tracking-widest mb-3 ml-1">Daily Health Insights</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 {Object.entries(DIAGNOSTIC_DATA).map(([key, config]) => {
                     const backendData = metrics.insight_grid[key] || { status: 'green' };
                     const status = backendData.status || 'green';

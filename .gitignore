@@ -1,0 +1,14 @@
+# Python (Backend)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env
+
+# System
+.DS_Store
+Thumbs.db
+
+# Trae IDE
+.trae/

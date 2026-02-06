@@ -2,7 +2,7 @@ import React from 'react';
 
 const CircularMetric = ({ value, label, color, subLabel = '', max = 100, suffix = '', onClick, size = 'w-24 h-24' }) => {
   const radius = 36;
-  const stroke = 6;
+  const stroke = 4;
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (value / max) * circumference;
@@ -43,8 +43,8 @@ const CircularMetric = ({ value, label, color, subLabel = '', max = 100, suffix 
         </svg>
         {/* Center Value */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xl font-bold text-white">
-            {value}<span className="text-xs align-top">{suffix}</span>
+          <span className="text-3xl font-bold text-white">
+            {value}<span className="text-sm align-top">{suffix}</span>
           </span>
         </div>
       </div>
