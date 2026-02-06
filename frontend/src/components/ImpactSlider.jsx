@@ -5,16 +5,7 @@ const ImpactSlider = ({ label, value, min, max, step = 1, onChange, unit = '', v
 
   // Determine color based on percentage
   let trackColor = 'bg-whoop-recovery'; // Green
-  if (reverseColor) {
-      // For metrics where "High" is bad (e.g., Stress, Alcohol)
-      if (percentage > 66) trackColor = 'bg-whoop-red';
-      else if (percentage > 33) trackColor = 'bg-whoop-yellow';
-  } else {
-      // For metrics where "High" is good (e.g., Sleep)
-      if (percentage < 33) trackColor = 'bg-whoop-red';
-      else if (percentage < 66) trackColor = 'bg-whoop-yellow';
-  }
-
+  
   return (
     <div className="mb-6">
       <div className="flex justify-between mb-2">

@@ -12,14 +12,31 @@ const DEFINITIONS = {
   RHR: "Resting Heart Rate - Your heart beats per minute when completely at rest. Lower is usually better.",
   REM: "Rapid Eye Movement - Deep sleep stage crucial for mental restoration and memory consolidation.",
   Sympathetic: "Fight or Flight - The stress response state. High sympathetic activity lowers HRV.",
-  Parasympathetic: "Rest and Digest - The recovery state. Dominance here leads to high HRV and recovery."
+  Parasympathetic: "Rest and Digest - The recovery state. Dominance here leads to high HRV and recovery.",
+  "Neuro-toxicity": "The depressive effect of alcohol on the Central Nervous System (CNS), which crashes Heart Rate Variability (HRV).",
+  "Metabolic State": "Measures the energy cost of digestion; late heavy meals keep the body working instead of resting.",
+  "CNS Stimulants": "Substances (like caffeine) that block adenosine receptors, preventing the brain from sensing sleep pressure and entering deep REM sleep.",
+  "Autonomic Load": "Reflects the balance between Sympathetic (Fight/Flight) and Parasympathetic (Rest/Digest) branches of the Autonomic Nervous System (ANS)."
+};
+
+const DEFINITION_KEYWORDS = {
+  "CNS": ["cns", "central nervous system"],
+  "HRV": ["hrv", "heart rate variability"],
+  "RHR": ["rhr", "resting heart rate", "heart is beating"],
+  "REM": ["rem", "rapid eye movement"],
+  "Sympathetic": ["sympathetic", "fight or flight", "stress"],
+  "Parasympathetic": ["parasympathetic", "rest and digest", "rest & digest"],
+  "Neuro-toxicity": ["neuro-toxicity", "toxicity", "ethanol", "alcohol"],
+  "Metabolic State": ["metabolic state", "digestion", "digestive", "calories"],
+  "CNS Stimulants": ["cns stimulants", "caffeine", "adenosine"],
+  "Autonomic Load": ["autonomic load", "autonomic balance", "autonomic noise"]
 };
 
 const DIAGNOSTIC_DATA = {
     neuro_toxicity: {
         title: "NEURO-TOXICITY",
         icon: Brain,
-        unit: "units",
+        unit: "standard drinks",
         getValue: (m) => m.active_units || 0,
         statusMap: {
             green: {
@@ -113,10 +130,10 @@ const DIAGNOSTIC_DATA = {
 const EDUCATION_CONTENT = {
     Sleep: "The Performance Multiplier: Sleep is the baseline for all physical and mental repair. This metric reflects the raw \"Quality x Quantity\" of your rest. Short-changing your sleep window creates \"Sleep Debt\" that no amount of caffeine can fully offset.",
     Recovery: "Autonomic Readiness: Recovery is not a grade on yesterday; it's a measure of your capacity for today. It is primarily driven by your Autonomic Nervous System (ANS) balance—how well your body has transitioned from \"Fight or Flight\" to \"Rest and Digest\".",
-    "Recovery Foundation": "The Baseline Load: These are the internal factors you control. High mental stress and insufficient sleep keep your body in a sympathetic state, preventing the deep cellular repair needed for a \"Green\" recovery day.",
-    "Food Consumption": "Metabolic Strain: Digestion is an energy-intensive process. Consuming large caloric loads close to bedtime diverts blood flow to the gut, causing your Resting Heart Rate (RHR) to stay elevated and preventing your heart from entering its most restorative state.",
-    "Alcohol Consumption": "The Systemic Toxin: Alcohol is a potent parasympathetic suppressor. It causes a non-linear crash in Heart Rate Variability (HRV) and fragments your sleep architecture, specifically suppressing REM sleep while your liver works to clear the ethanol.",
-    Caffeine: "Adenosine Blockage: Caffeine has a ~6-hour half-life. It works by blocking adenosine receptors in the brain, which are responsible for \"sleep pressure.\" High residue at bedtime prevents you from falling into deep, restorative sleep cycles.",
+    "Recovery Foundation": "These are the internal factors you control. High mental stress and insufficient sleep keep your body in a sympathetic state, preventing the deep cellular repair needed for a \"Green\" recovery day.",
+    "Food Consumption": "Digestion is an energy-intensive process. Consuming large caloric loads close to bedtime diverts blood flow to the gut, causing your Resting Heart Rate (RHR) to stay elevated and preventing your heart from entering its most restorative state.",
+    "Alcohol Consumption": "Alcohol is a potent parasympathetic suppressor. It causes a non-linear crash in Heart Rate Variability (HRV) and fragments your sleep architecture, specifically suppressing REM sleep while your liver works to clear the ethanol.",
+    Caffeine: "Caffeine has a ~6-hour half-life. It works by blocking adenosine receptors in the brain, which are responsible for \"sleep pressure.\" High residue at bedtime prevents you from falling into deep, restorative sleep cycles.",
     "Neuro-Toxicity": "Alcohol & The CNS: Alcohol is a potent CNS (Central Nervous System) depressant. It causes an immediate drop in HRV (Heart Rate Variability), which is the primary marker of recovery. This \"toxicity\" load forces the liver into high-gear, preventing the body from entering deep, restorative sleep. Even after ethanol is cleared, systemic inflammation can suppress recovery scores for up to 24 hours.",
     "Metabolic State": "The Cost of Digestion: Digesting food is an energy-intensive process. When you eat a high-calorie meal close to bedtime, your body diverts blood flow to the digestive tract instead of focusing on cellular repair. This results in an elevated RHR (Resting Heart Rate) throughout the night, preventing your heart from reaching its most restorative \"resting\" state.",
     "CNS Stimulants": "Caffeine & Adenosine: CNS (Central Nervous System) stimulants like caffeine work by blocking adenosine receptors—the chemical signals that create \"sleep pressure.\" High caffeine residue at bedtime prevents the brain from transitioning into REM (Rapid Eye Movement) cycles. This leads to \"fragmented sleep,\" where you remain unconscious but your brain fails to reach deep recovery stages.",
@@ -127,17 +144,17 @@ function App() {
   const [activeModal, setActiveModal] = useState(null);
 
   const [inputs, setInputs] = useState({
-    sleep_duration: 7.5,
+    sleep_duration: 8,
     alcohol_intake: 0, // Keep for backward compatibility or remove
-    alcohol_type_abv: 5, // Default Beer
-    alcohol_volume_per_drink: 330,
+    alcohol_type_abv: 0, 
+    alcohol_volume_per_drink: 0,
     alcohol_count: 0,
     alcohol_hours_since: 0,
     caffeine_amount: 0,
     caffeine_timing: 8,
     late_meal_timing: 2,
     meal_calories: 0,
-    stress_level: 1, // 0: Low, 1: Med, 2: High
+    stress_level: 0, // 0: Low, 1: Med, 2: High
   });
 
   const [metrics, setMetrics] = useState({
@@ -155,6 +172,30 @@ function App() {
   });
 
   const [response, setResponse] = useState(null);
+
+  // Startup Welcome Modal
+  React.useEffect(() => {
+    setActiveModal({
+      title: "Welcome to WHOOP Insights Lab (Beta)",
+      content: (
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-bold text-white mb-1">What is this?</h4>
+            <p>WHOOP Insights Lab is an interactive simulator designed to demonstrate how your daily lifestyle choices—sleep, stress, diet, and alcohol—physiologically impact your Recovery and Sleep Performance.</p>
+          </div>
+          <div>
+            <h4 className="font-bold text-white mb-1">How to use it?</h4>
+            <p>Adjust the sliders below (Sleep Duration, Meal Timing, Alcohol, etc.) to see real-time changes in your Recovery Score and detailed physiological metrics like Neuro-Toxicity and Metabolic State.</p>
+          </div>
+          <div className="p-3 bg-whoop-monitor-bg border border-whoop-monitor-border rounded-lg">
+            <p className="text-xs text-whoop-textDim italic">
+              <span className="font-bold text-whoop-yellow">Note:</span> This is a Beta version for educational purposes. The calculated numbers are simulated estimates and do not reflect exact medical data or guaranteed real-world effects.
+            </p>
+          </div>
+        </div>
+      )
+    });
+  }, []);
 
   // Real-time sync for core logic
   React.useEffect(() => {
@@ -243,7 +284,7 @@ function App() {
         <Header />
 
         <div className="text-center mb-8 mt-4">
-            <h2 className="text-white text-lg tracking-widest font-light uppercase">WHOOP Insight Lab</h2>
+            <h2 className="text-white text-lg tracking-widest font-light uppercase">WHOOP Insights Lab</h2>
         </div>
 
         {/* Main Metrics Rings */}
@@ -287,17 +328,31 @@ function App() {
                             key={key} 
                             className="bg-whoop-monitor-bg border border-whoop-monitor-border rounded-xl p-5 flex flex-col justify-between h-32 cursor-pointer hover:border-slate-500 transition-colors duration-300"
                             onClick={() => {
+                                const relevantDefinitions = Object.entries(DEFINITIONS).filter(([term, def]) => {
+                                    // Get keywords for this term, defaulting to just the term itself
+                                    const keywords = DEFINITION_KEYWORDS[term] || [term];
+                                    
+                                    // Create a search context including both the description and the title
+                                    // This ensures the main metric (e.g., "Neuro-toxicity") is always included
+                                    const searchContext = (mapData.text + " " + mapData.title).toLowerCase();
+                                    
+                                    // Check if any keyword exists in the context
+                                    return keywords.some(keyword => searchContext.includes(keyword.toLowerCase()));
+                                });
+
                                 const modalContent = (
                                     <div className="space-y-4">
                                         <p className="font-medium text-white text-sm leading-relaxed">{mapData.text}</p>
-                                        <div className="border-t border-white/10 pt-4">
-                                            <h4 className="text-xs font-bold text-whoop-textDim uppercase mb-2">Key Definitions</h4>
-                                            <div className="space-y-2 text-xs text-whoop-textDim">
-                                                {Object.entries(DEFINITIONS).map(([term, def]) => (
-                                                    <p key={term}><span className="text-white font-semibold">{term}:</span> {def}</p>
-                                                ))}
+                                        {relevantDefinitions.length > 0 && (
+                                            <div className="border-t border-white/10 pt-4">
+                                                <h4 className="text-xs font-bold text-whoop-textDim uppercase mb-2">Key Definitions</h4>
+                                                <div className="space-y-2 text-xs text-whoop-textDim">
+                                                    {relevantDefinitions.map(([term, def]) => (
+                                                        <p key={term}><span className="text-white font-semibold">{term}:</span> {def}</p>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 );
                                 openModal(mapData.title, modalContent);
@@ -373,12 +428,12 @@ function App() {
         {/* Food Consumption */}
         <div className="px-4 mb-8">
             <DashboardCard 
-              title="Food Consumption"
-              onTitleClick={() => openModal('Food Consumption', EDUCATION_CONTENT['Food Consumption'])}
+              title="Late Meals"
+              onTitleClick={() => openModal('Late Meals', EDUCATION_CONTENT['Food Consumption'])}
             >
                 <div className="space-y-6">
                     <ImpactSlider
-                        label="Meal Size (Calories)"
+                        label="Meal Calories"
                         value={inputs.meal_calories}
                         min={0} max={1500} step={50} unit="kcal"
                         onChange={(val) => handleChange('meal_calories', val)}
@@ -389,8 +444,16 @@ function App() {
                         value={inputs.late_meal_timing}
                         min={0} max={6} step={0.5} unit="h before bed"
                         onChange={(val) => handleChange('late_meal_timing', val)}
-                        reverseColor={true}
+                        // Removed reverseColor={true} so higher values (more time before bed) are Green
                     />
+
+                    {metrics.active_calories > 0 && (
+                        <div className="mt-2 p-3 bg-red-900 bg-opacity-30 rounded-lg border border-red-800 text-center">
+                            <p className="text-red-400 text-xs font-bold">
+                                By the time you sleep, {metrics.active_calories} kcal will still be digesting, keeping your heart rate elevated.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </DashboardCard>
         </div>
@@ -438,9 +501,9 @@ function App() {
                         reverseColor={true}
                     />
                      <ImpactSlider
-                        label="Hours Since Last Drink"
+                        label="Alcohol Timing"
                         value={inputs.alcohol_hours_since}
-                        min={0} max={12} step={0.5} unit="h"
+                        min={0} max={12} step={0.5} unit="h before bed"
                         onChange={(val) => handleChange('alcohol_hours_since', val)}
                         // Not reversing this one because "More hours since" is GOOD
                     />
@@ -448,7 +511,7 @@ function App() {
                     {metrics.standard_drinks > 0 && (
                         <div className="mt-2 p-3 bg-red-900 bg-opacity-30 rounded-lg border border-red-800 text-center">
                             <p className="text-red-400 text-xs font-bold">
-                                By the time you sleep, {metrics.active_units} standard drinks will still be in your system, causing a {metrics.alcohol_penalty}% recovery crash.
+                                By the time you sleep, {metrics.active_units} standard drinks will still be in your system, crashing your HRV and fragmenting your sleep.
                             </p>
                         </div>
                     )}
@@ -458,12 +521,12 @@ function App() {
 
         <div className="px-4 mb-8">
             <DashboardCard 
-              title="Caffeine"
-              onTitleClick={() => openModal('Caffeine', EDUCATION_CONTENT['Caffeine'])}
+              title="Caffeine Intake"
+              onTitleClick={() => openModal('Caffeine Intake', EDUCATION_CONTENT['Caffeine'])}
             >
                 <div className="space-y-6">
                      <ImpactSlider
-                        label="Caffeine Amount"
+                        label="Total Caffeine"
                         value={inputs.caffeine_amount}
                         min={0} max={600} step={10} unit="mg"
                         onChange={(val) => handleChange('caffeine_amount', val)}
@@ -474,8 +537,16 @@ function App() {
                         value={inputs.caffeine_timing}
                         min={0} max={12} step={0.5} unit="h before bed"
                         onChange={(val) => handleChange('caffeine_timing', val)}
-                        // Not reversing timing (Assuming more hours before bed is good)
+                        // Not reversing timing (More hours before bed is good)
                     />
+
+                    {metrics.caffeine_residue > 0 && (
+                        <div className="mt-2 p-3 bg-red-900 bg-opacity-30 rounded-lg border border-red-800 text-center">
+                            <p className="text-red-400 text-xs font-bold">
+                                By the time you sleep, {metrics.caffeine_residue} mg of caffeine will still be active, blocking deep REM sleep.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </DashboardCard>
         </div>
