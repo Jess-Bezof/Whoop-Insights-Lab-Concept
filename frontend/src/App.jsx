@@ -216,7 +216,8 @@ function App() {
                 alcohol_hours_since_last_drink: inputs.alcohol_hours_since
             };
 
-            const res = await fetch('http://127.0.0.1:8000/calculate', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+            const res = await fetch(`${apiUrl}/calculate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -251,7 +252,8 @@ function App() {
         const stressMap = { 0: 'Low', 1: 'Medium', 2: 'High' };
         const payload = { ...inputs, stress_level: stressMap[inputs.stress_level] };
 
-        const res = await fetch('http://127.0.0.1:8000/simulate', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+        const res = await fetch(`${apiUrl}/simulate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
